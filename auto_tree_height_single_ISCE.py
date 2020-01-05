@@ -56,6 +56,8 @@ def auto_tree_height_single_ISCE(directory, date1, date2, numLooks, noiselevel, 
     print("end test")
 
     xmlfile = directory+"int_"+date1+"_"+date2+"/topophase.cor.geo.xml"
+    print("directory")
+    print(xmlfile)
     tree = ET.parse(xmlfile)
     root = tree.getroot()
     delta_array = np.array([])
@@ -87,18 +89,29 @@ def auto_tree_height_single_ISCE(directory, date1, date2, numLooks, noiselevel, 
     tree = ET.parse(xmlfile)
     root = tree.getroot()
     delta_array = np.array([])
+    print(delta_array)
     start_array = np.array([])
+    print(start_array)
     size_array = np.array([], dtype=np.int32)
+    print(size_array)
     for size in root.iter('property'):
         if size.items()[0][1] == 'size':
             size_array = np.append(size_array, int(size.find('value').text))
+            print(size_array)
+            print("above is size array")
     if (size_array[0]<geo_width)|(size_array[1]<geo_nlines):
         for delta_val in root.iter('property'):
             if delta_val.items()[0][1] == 'delta':
+                print ("this is delta_val")
+                print (delta_val)
                 delta_array = np.append(delta_array, float(delta_val.find('value').text))
+                print ("this is delta_array")
+                print(delta_array)
         for start_val in root.iter('property'):
             if start_val.items()[0][1] == 'startingvalue':
                 start_array = np.append(start_array, float(start_val.find('value').text))
+                print("this is start array")
+                print(start_array)
         end_array = start_array + size_array * delta_array
         north = max(start_array[1],end_array[1])
         south = min(start_array[1],end_array[1])
@@ -106,6 +119,8 @@ def auto_tree_height_single_ISCE(directory, date1, date2, numLooks, noiselevel, 
         west = min(start_array[0],end_array[0])
         coords = [north, south, west, east]
         geo_width = size_array[0]
+        print("final geowidth")
+        print(geo_width)
         geo_nlines = size_array[1]
         corner_lat = north
         corner_lon = west
@@ -116,13 +131,18 @@ def auto_tree_height_single_ISCE(directory, date1, date2, numLooks, noiselevel, 
     # Read geolocated amp and cor files
 
     fid_cor = open(directory + "int_"+date1+"_"+date2+"/topophase.cor.geo", "rb")
-    print("I am here")
+
     cor_file = np.fromfile(fid_cor, dtype=np.dtype('<f'))
     print(cor_file)
     print(geo_width)
     print(cor_file.shape)
+    print("I am here")
+    print(cor_file.shape/(2*geo_width))
+    divide = cor_file.shape/(2*geo_width)
 ##    pdb.set_trace()
     corr = cor_file.reshape(2*geo_width, -1, order='F')
+    #corr = cor_file.reshape(2*geo_width, -1, order='F')
+
     corr = corr[:,0:geo_nlines]
     corr_mag = corr[geo_width:2*geo_width,:]
 
